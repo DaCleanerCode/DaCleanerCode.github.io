@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deal Dibs — Call dibs on the price you want</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2333;
+    --paper:#F7F1E4;
+    --paper-dim:#EFE7D3;
+    --marigold:#E7A23D;
+    --forest:#3E6B52;
+    --rust:#C1503A;
+    --line: rgba(28,35,51,0.16);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;}
+
+  /* subtle paper texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(rgba(28,35,51,0.035) 1px, transparent 1px);
+    background-size:3px 3px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px; position:relative; z-index:1;}
+
+  /* ---------- NAV ---------- */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:28px 0;
+  }
+  .logo{
+    font-family:'Anton', sans-serif;
+    font-size:22px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--rust);
+    display:inline-block;
+    transform:translateY(-1px);
+  }
+  .nav-cta{
+    font-family:'DM Mono', monospace;
+    font-size:13px;
+    text-decoration:none;
+    border:1.5px solid var(--ink);
+    padding:9px 18px;
+    border-radius:2px;
+    transition:background .15s ease, color .15s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--ink); color:var(--paper);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:48px;
+    align-items:center;
+    padding:56px 0 88px;
+  }
+  .eyebrow{
+    font-family:'DM Mono', monospace;
+    font-size:13px;
+    color:var(--forest);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:"●"; font-size:9px;}
+  h1{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(40px, 5.6vw, 68px);
+    line-height:0.98;
+    text-transform:uppercase;
+    letter-spacing:0.2px;
+    margin-bottom:22px;
+  }
+  h1 .accent{color:var(--rust);}
+  .sub{
+    font-size:18px;
+    line-height:1.6;
+    max-width:46ch;
+    color:rgba(28,35,51,0.78);
+    margin-bottom:32px;
+  }
+  .hero-ctas{display:flex; align-items:center; gap:20px; flex-wrap:wrap;}
+  .btn-primary{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:15.5px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:16px 26px;
+    border-radius:3px;
+    text-decoration:none;
+    display:inline-block;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn-primary:hover{background:var(--rust); transform:translateY(-1px);}
+  .btn-secondary{
+    font-family:'DM Mono', monospace;
+    font-size:14px;
+    text-decoration:underline;
+    text-underline-offset:4px;
+    color:var(--ink);
+  }
+
+  /* ---------- TICKET (signature element) ---------- */
+  .ticket-stage{
+    display:flex;
+    justify-content:center;
+    perspective:1000px;
+  }
+  .ticket{
+    background:#fff;
+    width:100%;
+    max-width:340px;
+    border-radius:4px;
+    position:relative;
+    box-shadow:0 22px 50px -18px rgba(28,35,51,0.35), 0 2px 0 rgba(28,35,51,0.06);
+    transform:rotate(3deg);
+    font-family:'DM Mono', monospace;
+  }
+  .ticket-top{
+    padding:22px 22px 18px;
+    border-bottom:2px dashed var(--line);
+    position:relative;
+  }
+  .ticket-top::before, .ticket-top::after{
+    content:"";
+    position:absolute;
+    bottom:-9px;
+    width:18px; height:18px;
+    background:var(--paper);
+    border-radius:50%;
+  }
+  .ticket-top::before{left:-9px;}
+  .ticket-top::after{right:-9px;}
+  .ticket-id{
+    font-size:11px;
+    letter-spacing:0.1em;
+    color:rgba(28,35,51,0.45);
+    display:flex; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .ticket-product{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:16px;
+  }
+  .ticket-prices{display:flex; align-items:baseline; gap:10px;}
+  .price-old{
+    font-size:15px;
+    color:rgba(28,35,51,0.4);
+    text-decoration:line-through;
+  }
+  .price-new{
+    font-family:'Anton', sans-serif;
+    font-size:34px;
+    color:var(--forest);
+  }
+  .price-target-label{
+    font-size:10.5px;
+    color:rgba(28,35,51,0.5);
+    margin-top:2px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
+  .ticket-bottom{
+    padding:16px 22px 22px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .status-pill{
+    font-size:11px;
+    background:var(--forest);
+    color:#fff;
+    padding:6px 12px;
+    border-radius:20px;
+    letter-spacing:0.04em;
+  }
+  .stamp{
+    font-family:'Anton', sans-serif;
+    font-size:13px;
+    color:var(--rust);
+    border:2px solid var(--rust);
+    border-radius:4px;
+    padding:4px 9px;
+    transform:rotate(-8deg);
+    letter-spacing:0.05em;
+  }
+
+  /* ---------- MARQUEE ---------- */
+  .marquee-band{
+    background:var(--ink);
+    color:var(--paper);
+    padding:14px 0;
+    overflow:hidden;
+    white-space:nowrap;
+    transform:rotate(-1deg);
+    margin:0 -6vw;
+  }
+  .marquee-track{
+    display:inline-flex;
+    animation:scroll 26s linear infinite;
+  }
+  .marquee-track span{
+    font-family:'DM Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:0 28px;
+    opacity:0.85;
+  }
+  @keyframes scroll{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .section{padding:96px 0;}
+  .section-head{
+    max-width:520px;
+    margin-bottom:56px;
+  }
+  .section-label{
+    font-family:'DM Mono', monospace;
+    font-size:13px;
+    color:var(--rust);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:12px;
+  }
+  h2{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(28px, 3.4vw, 40px);
+    text-transform:uppercase;
+    line-height:1.05;
+  }
+  .stages{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:0;
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+  }
+  .stage{
+    padding:32px 28px;
+    border-right:2px solid var(--ink);
+    position:relative;
+  }
+  .stage:last-child{border-right:none;}
+  .stage-tag{
+    font-family:'DM Mono', monospace;
+    font-size:12px;
+    color:var(--forest);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:14px;
+  }
+  .stage h3{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    margin-bottom:10px;
+  }
+  .stage p{
+    font-size:14.5px;
+    line-height:1.6;
+    color:rgba(28,35,51,0.72);
+  }
+
+  /* ---------- FEATURES ---------- */
+  .features{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:2px;
+    background:var(--line);
+    border:2px solid var(--ink);
+  }
+  .feature{
+    background:var(--paper);
+    padding:30px 32px;
+  }
+  .feature h3{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .feature h3 .mark{color:var(--marigold); font-family:'Anton', sans-serif;}
+  .feature p{
+    font-size:14.5px;
+    line-height:1.6;
+    color:rgba(28,35,51,0.72);
+  }
+
+  /* ---------- CTA BAND ---------- */
+  .cta-band{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:6px;
+    padding:64px 48px;
+    text-align:center;
+    margin:0 0 96px;
+  }
+  .cta-band h2{color:var(--paper); margin-bottom:16px;}
+  .cta-band p{
+    font-size:16px;
+    color:rgba(247,241,228,0.7);
+    max-width:44ch;
+    margin:0 auto 30px;
+    line-height:1.6;
+  }
+  .cta-band .btn-primary{background:var(--marigold); color:var(--ink);}
+  .cta-band .btn-primary:hover{background:var(--paper);}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:2px solid var(--ink);
+    padding:32px 0 48px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:16px;
+    font-family:'DM Mono', monospace;
+    font-size:13px;
+    color:rgba(28,35,51,0.6);
+  }
+  footer a{text-decoration:none; border-bottom:1px solid currentColor;}
+
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr; padding:32px 0 56px;}
+    .ticket-stage{order:-1; margin-bottom:8px;}
+    .ticket{transform:rotate(1.5deg); max-width:300px;}
+    .stages{grid-template-columns:1fr;}
+    .stage{border-right:none; border-bottom:2px solid var(--ink);}
+    .stage:last-child{border-bottom:none;}
+    .features{grid-template-columns:1fr;}
+    .cta-band{padding:48px 26px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .marquee-track{animation:none;}
+  }
+
+  :focus-visible{outline:2.5px solid var(--rust); outline-offset:3px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <div class="logo"><span class="dot"></span>Deal&nbsp;Dibs</div>
+    <a href="#get-started" class="nav-cta">Install on Shopify</a>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Price watching, automated</div>
+      <h1>Call dibs<br>before the<br><span class="accent">price does.</span></h1>
+      <p class="sub">Set the price you're willing to pay on any product. Deal Dibs watches it around the clock and places the order the instant it drops — no refreshing, no alarms, no missed deals.</p>
+      <div class="hero-ctas">
+        <a href="#get-started" class="btn-primary">Add to your store</a>
+        <a href="#how" class="btn-secondary">See how it works</a>
+      </div>
+    </div>
+
+    <div class="ticket-stage">
+      <div class="ticket">
+        <div class="ticket-top">
+          <div class="ticket-id"><span>DIBS #0417</span><span>WATCHING</span></div>
+          <div class="ticket-product">Field Jacket — Olive, size M</div>
+          <div class="ticket-prices">
+            <span class="price-old">$118</span>
+            <span class="price-new">$89</span>
+          </div>
+          <div class="price-target-label">Target hit · order placed automatically</div>
+        </div>
+        <div class="ticket-bottom">
+          <span class="status-pill">Claimed</span>
+          <span class="stamp">DIBS!</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="marquee-band">
+  <div class="marquee-track">
+    <span>SET YOUR PRICE</span><span>WE WATCH IT</span><span>YOU GET IT</span><span>NO REFRESHING REQUIRED</span>
+    <span>SET YOUR PRICE</span><span>WE WATCH IT</span><span>YOU GET IT</span><span>NO REFRESHING REQUIRED</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="section" id="how">
+    <div class="section-head">
+      <div class="section-label">How it works</div>
+      <h2>Three stages, one ticket.</h2>
+    </div>
+    <div class="stages">
+      <div class="stage">
+        <div class="stage-tag">Stage 1</div>
+        <h3>Set your price</h3>
+        <p>Pick any product on the store and name the price that makes it a deal for you. Your dibs ticket opens instantly.</p>
+      </div>
+      <div class="stage">
+        <div class="stage-tag">Stage 2</div>
+        <h3>We keep watch</h3>
+        <p>Deal Dibs checks the listed price continuously in the background, so you don't have to think about it again.</p>
+      </div>
+      <div class="stage">
+        <div class="stage-tag">Stage 3</div>
+        <h3>It's claimed</h3>
+        <p>The moment the price meets your target, the order goes through automatically and you get a confirmation.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-label">Why it works</div>
+      <h2>Built for shoppers who wait on purpose.</h2>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <h3><span class="mark">01</span> Real-time monitoring</h3>
+        <p>Prices are checked continuously, not on a slow daily cron — so a flash sale doesn't slip past your ticket.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="mark">02</span> Auto-checkout on trigger</h3>
+        <p>When the target is hit, the order is placed using the shopper's saved payment details — no last-minute scramble.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="mark">03</span> Multiple tickets at once</h3>
+        <p>Shoppers can hold dibs on as many products as they like, each watched independently.</p>
+      </div>
+      <div class="feature">
+        <h3><span class="mark">04</span> Merchant-side controls</h3>
+        <p>Store owners set floors, limits, and eligible products, so automated orders stay within their rules.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band" id="get-started">
+    <h2>Stop refreshing. Start dibs-ing.</h2>
+    <p>Add Deal Dibs to your Shopify store and let your customers claim their price the moment it's real.</p>
+    <a href="#" class="btn-primary">Install on Shopify</a>
+  </section>
+
+  <footer>
+    <span>© 2026 Deal Dibs</span>
+    <span><a href="mailto:hello@deal-dibs.com">hello@deal-dibs.com</a></span>
+  </footer>
+</div>
+
+</body>
+</html>
